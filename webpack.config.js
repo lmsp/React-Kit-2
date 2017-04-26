@@ -4,6 +4,8 @@ const HappyPack = require('happypack')
 const BrowserSyncPlugin = require('browser-sync-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
+const StyleLintPlugin = require('stylelint-webpack-plugin')
+const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 const isDebug = !process.argv.includes('-p')
 
@@ -28,11 +30,37 @@ let config = {
       threads: 4
     }),
     new HappyPack({
+      id: 'cssdebug',
+      cache: true,
+      loaders: [
+        {
+          loader: 'style-loader?sourceMap'
+        },
+        {
+          loader: 'css-loader?modules&importLoaders=1&localIdentName=[path]___[name]__[local]___[hash:base64:5]'
+        }
+      ],
+      threads: 4
+    }),
+    new HappyPack({
+      id: 'cssrelease',
+      cache: true,
+      loaders: [
+        {
+          loader: 'css-loader?modules&localIdentName=[path]___[name]__[local]___[hash:base64:5]'
+        }
+      ],
+      threads: 4
+    }),
+    new HappyPack({
       id: 'jsx',
       cache: true,
       loaders: [
         {
           loader: 'react-hot-loader!babel-loader'
+        },
+        {
+          loader: 'eslint-loader'
         }
       ],
       threads: 4
@@ -40,6 +68,11 @@ let config = {
     new HtmlWebpackPlugin({
       template: './dist/index.template.html',
       inject: true
+    }),
+    new StyleLintPlugin({
+      configFile: '.stylelintrc',
+      context: 'src',
+      files: '**/*.css'
     })
   ],
   module: {
@@ -47,6 +80,16 @@ let config = {
       {
         test: /\.(png|jpg|jpeg|gif|svg|woff|woff2)$/,
         use: 'happypack/loader?id=images'
+      },
+      {
+        test: /\.css$/,
+        exclude: /node_modules/,
+        use: isDebug
+          ? 'happypack/loader?id=cssdebug'
+          : ExtractTextPlugin.extract({
+            fallback: 'style-loader',
+            use: 'happypack/loader?id=cssrelease'
+          })
       },
       {
         test: /\.jsx?$/,
@@ -101,6 +144,12 @@ if (isDebug) {
     new CleanWebpackPlugin(['dist'], {
       root: __dirname,
       exclude: ['index.template.html', 'bundle.js', 'bundle.js.map']
+    })
+  )
+  config.plugins.push(
+    new ExtractTextPlugin({
+      filename: 'app.css',
+      allChunks: true
     })
   )
   config.plugins.push(new webpack.optimize.UglifyJsPlugin())
