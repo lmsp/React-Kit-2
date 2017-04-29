@@ -9,12 +9,12 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 const isDebug = !process.argv.includes('-p')
 
-// Development
+// Desarrollo
 const webpackDevServerPort = 8080
 const browserSyncProxyPort = 3000
 const publicPathDev = '/'
 
-// Production
+// Productivo
 const publicPathProd = '/'
 
 let config = {
@@ -25,29 +25,6 @@ let config = {
       loaders: [
         {
           loader: 'url-loader'
-        }
-      ],
-      threads: 4
-    }),
-    new HappyPack({
-      id: 'cssdebug',
-      cache: true,
-      loaders: [
-        {
-          loader: 'style-loader?sourceMap'
-        },
-        {
-          loader: 'css-loader?modules&importLoaders=1&localIdentName=[path]___[name]__[local]___[hash:base64:5]'
-        }
-      ],
-      threads: 4
-    }),
-    new HappyPack({
-      id: 'cssrelease',
-      cache: true,
-      loaders: [
-        {
-          loader: 'css-loader?modules&localIdentName=[path]___[name]__[local]___[hash:base64:5]'
         }
       ],
       threads: 4
@@ -125,13 +102,31 @@ if (isDebug) {
         port: browserSyncProxyPort,
         proxy: 'localhost:' + webpackDevServerPort
       },
-      // plugin options
+      // opciones
       {
-        // prevent BrowserSync from reloading the page
-        // and let Webpack Dev Server take care of this
+        // Previene a BrowserSync recargar la página
+        // y deja a Webpack Dev Server que tome el control
         reload: false
       }
     )
+  )
+  config.plugins.push(
+    new HappyPack({
+      id: 'cssdebug',
+      cache: true,
+      loaders: [
+        {
+          loader: 'style-loader?sourceMap'
+        },
+        {
+          loader: 'css-loader?modules&importLoaders=1&localIdentName=[path]___[name]__[local]___[hash:base64:5]'
+        },
+        {
+          loader: 'postcss-loader?sourceMap=inline'
+        }
+      ],
+      threads: 4
+    })
   )
   config.module.rules.push({
     test: /\.js$/,
@@ -144,6 +139,21 @@ if (isDebug) {
     new CleanWebpackPlugin(['dist'], {
       root: __dirname,
       exclude: ['index.template.html', 'bundle.js', 'bundle.js.map']
+    })
+  )
+  config.plugins.push(
+    new HappyPack({
+      id: 'cssrelease',
+      cache: true,
+      loaders: [
+        {
+          loader: 'css-loader?modules&importLoaders=1&localIdentName=[path]___[name]__[local]___[hash:base64:5]'
+        },
+        {
+          loader: 'postcss-loader'
+        }
+      ],
+      threads: 4
     })
   )
   config.plugins.push(
