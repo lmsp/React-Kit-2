@@ -1,7 +1,7 @@
 {
-  "name": "React-Kit-1",
+  "name": "React-Kit-2",
   "version": "1.0.0",
-  "description": "React with Webpack and HappyPack, Babel, Flow, Standard.js and BrowserSync",
+  "description": "React con las características de React-Kit-1 más PostCSS, react-css-modules, Material Design, stylelint ...",
   "main": " ",
   "license": "MIT",
   "babel": {
